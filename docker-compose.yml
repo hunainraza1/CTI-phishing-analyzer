@@ -1,0 +1,58 @@
+services:
+  opencti:
+    image: opencti/platform:6.2.0
+    environment:
+      APP__PORT: "8080"
+      APP__BASE_URL: "http://localhost:8080"
+      APP__ADMIN__EMAIL: "admin@cyberknight.com"
+      APP__ADMIN__PASSWORD: "CyberKnight2026!"
+      APP__ADMIN__TOKEN: "c9e7d42a-3b8f-4e1d-a6c2-f85b9d0e3471"
+      REDIS__HOSTNAME: "redis"
+      ELASTICSEARCH__URL: "http://elasticsearch:9200"
+      MINIO__ENDPOINT: "minio"
+      MINIO__PORT: "9000"
+      MINIO__USE_SSL: "false"
+      MINIO__ACCESS_KEY: "cyberknight"
+      MINIO__SECRET_KEY: "cyberknight2026"
+      RABBITMQ__HOSTNAME: "rabbitmq"
+    ports:
+      - "8080:8080"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      minio:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.2
+    restart: unless-stopped
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
+    environment:
+      discovery.type: "single-node"
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms1g -Xmx1g"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200 >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    environment:
+      MINIO_ROOT_USER: "cyberknight"
+      MINIO_ROOT_PASSWORD: "cyberknight2026"
+    command: server /data
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    restart: unless-stopped

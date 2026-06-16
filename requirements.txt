@@ -1,0 +1,7 @@
+flask
+python-dotenv
+anthropic
+requests
+beautifulsoup4
+weasyprint
+pycti
